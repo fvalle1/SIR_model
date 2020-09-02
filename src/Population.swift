@@ -7,6 +7,7 @@ class Population : FileWriter{
 
   init(N:Int){
     people = [];
+
     for _ in 0..<N{
       let sub = Subject();
       if Double.random(in:0..<1) < Config.AppUsage{
@@ -18,8 +19,8 @@ class Population : FileWriter{
       }
 
       people.append(sub);
-    }
 
+    }
     currently_susceptibles = N;
     currently_infectus = 0;
     currently_recevered = 0;
@@ -32,25 +33,28 @@ class Population : FileWriter{
   }
 
   func Live()->Void{
-    for person in people{
-      switch person.state{
-      case .susceptible:
-        if Double.random(in:0..<1) < (Double(Config.beta) * Config.SI / Double(Config.N)){
-          person.state = status.infectus;
-          for device in person.dpi ?? []{
-            if (device?.GetStatus() ?? false) && (Double.random(in:0..<1) > device?.GetEfficacyProbability() ?? 0.0){
-              person.state = status.susceptible;
+    serialQueue.async{
+
+      for person in self.people{
+        switch person.state{
+        case .susceptible:
+          if Double.random(in:0..<1) < (Double(Config.beta) * Config.SI / Double(Config.N)){
+            person.state = status.infectus;
+            for device in person.dpi ?? []{
+              if (device?.GetStatus() ?? false) && (Double.random(in:0..<1) > device?.GetEfficacyProbability() ?? 0.0){
+                person.state = status.susceptible;
+              }
             }
           }
+        case .infectus:
+          if Double.random(in:0..<1) < Double(Config.gamma){
+            person.state = status.recovered;
+          };
+        case .recovered:
+          continue;
+        case .none:
+          continue;
         }
-      case .infectus:
-        if Double.random(in:0..<1) < Double(Config.gamma){
-          person.state = status.recovered;
-        };
-      case .recovered:
-        continue;
-      case .none:
-        continue;
       }
     }
   }
@@ -59,16 +63,18 @@ class Population : FileWriter{
     currently_susceptibles = 0;
     currently_infectus = 0;
     currently_recevered = 0;
-    for person in people{
-      switch person.state{
-      case .susceptible:
-        currently_susceptibles+=1;
-      case .infectus:
-        currently_infectus+=1;
-      case .recovered:
-        currently_recevered+=1;
-      case .none:
-        continue;
+    serialQueue.async{
+      for person in self.people{
+        switch person.state{
+        case .susceptible:
+          self.currently_susceptibles+=1;
+        case .infectus:
+          self.currently_infectus+=1;
+        case .recovered:
+          self.currently_recevered+=1;
+        case .none:
+          continue;
+        }
       }
     }
   }
