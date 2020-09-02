@@ -33,51 +33,48 @@ class Population : FileWriter{
   }
 
   func Live()->Void{
-    serialQueue.async{
-
-      for person in self.people{
-        switch person.state{
-        case .susceptible:
-          if Double.random(in:0..<1) < (Double(Config.beta) * Config.SI / Double(Config.N)){
-            person.state = status.infectus;
-            for device in person.dpi ?? []{
-              if (device?.GetStatus() ?? false) && (Double.random(in:0..<1) > device?.GetEfficacyProbability() ?? 0.0){
-                person.state = status.susceptible;
-              }
+    for person in self.people{
+      switch person.state{
+      case .susceptible:
+        if Double.random(in:0..<1) < (Double(Config.beta) * Config.SI / Double(Config.N)){
+          person.state = status.infectus;
+          for device in person.dpi ?? []{
+            if (device?.GetStatus() ?? false) && (Double.random(in:0..<1) > device?.GetEfficacyProbability() ?? 0.0){
+              person.state = status.susceptible;
             }
           }
-        case .infectus:
-          if Double.random(in:0..<1) < Double(Config.gamma){
-            person.state = status.recovered;
-          };
-        case .recovered:
-          continue;
-        case .none:
-          continue;
         }
+      case .infectus:
+        if Double.random(in:0..<1) < Double(Config.gamma){
+          person.state = status.recovered;
+        };
+      case .recovered:
+        continue;
+      case .none:
+        continue;
       }
     }
   }
+
 
   func Diagnosis(){
     currently_susceptibles = 0;
     currently_infectus = 0;
     currently_recevered = 0;
-    serialQueue.async{
-      for person in self.people{
-        switch person.state{
-        case .susceptible:
-          self.currently_susceptibles+=1;
-        case .infectus:
-          self.currently_infectus+=1;
-        case .recovered:
-          self.currently_recevered+=1;
-        case .none:
-          continue;
-        }
+    for person in self.people{
+      switch person.state{
+      case .susceptible:
+        self.currently_susceptibles+=1;
+      case .infectus:
+        self.currently_infectus+=1;
+      case .recovered:
+        self.currently_recevered+=1;
+      case .none:
+        continue;
       }
     }
   }
+  
 
   func Update() -> Void{
     //new births
