@@ -14,6 +14,8 @@ struct Config{
   static let death_rate = 0.00008;
 }
 
+let serialQueue = DispatchQueue(label: "com.queue.Serial")
+
 print("Reading config")
 print(CommandLine.arguments)
 
